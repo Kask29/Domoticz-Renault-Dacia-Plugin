@@ -20,4 +20,9 @@ Le account-id peut être trouvé en faisant : <code>renault-api accounts</code>
 
 Le VIN vous est communiqué par le vendeur. Il peut être trouvé via : <code>renault-api vehicles</code>
 
-Une fois ajouter, le plugin va créer les Dispositifs nécessaires (ne pas les renommer, ni les mettre en non-utilisé. Pour les masquer, mettez les en $Hidden depuis plan), le dzEvent, la page web.
+Une fois ajouter, le plugin va créer seul :
+- les Dispositifs nécessaires (ne pas les renommer, ni les mettre en non-utilisé. Pour les masquer, mettez les en $Hidden depuis plan)
+- le dzEvent qui permet de programmer la charge pour un jour/heure donné
+- la page web qui permet de créer la tâche plannifiée.
+
+La planification n'est valable qu'une seule fois, rien ne vous empêche de créer vos scénarios personnalisée basés sur les dispositifs du plugin.
