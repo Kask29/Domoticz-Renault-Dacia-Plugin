@@ -25,17 +25,15 @@ return {
             -- {idxButStart}---{idxButStop}---{startH]---{startD}---{stopH}---{stopD}---{Name}
             local splittedResult = domoticz.utils.stringSplit(triggeredItem.data,'---')
             domoticz.log("Programmation de début de charge le " .. splittedResult[4] .. " à " .. splittedResult[3] .. " et fin de charge le " .. splittedResult[6] .. " à " .. splittedResult[5] .. " pour " .. splittedResult[7])
-            --domoticz.devices(tonumber(splittedResult[1])).cancelQueuedCommands()
-            --domoticz.devices(splittedResult[7] .. " - Lancer la charge").cancelQueuedCommands()
-            
-            --domoticz.devices(tonumber(splittedResult[2])).cancelQueuedCommands()
-            --domoticz.devices(tonumber(splittedResult[1])).switchOn().at(splittedResult[3] .. " on " .. splittedResult[4])
-            --domoticz.devices(tonumber(splittedResult[2])).switchOff().at(splittedResult[5] .. " on " .. splittedResult[6])
+            domoticz.devices(tonumber(splittedResult[1])).cancelQueuedCommands()
+            domoticz.devices(tonumber(splittedResult[2])).cancelQueuedCommands()
+            domoticz.devices(tonumber(splittedResult[1])).switchOn().at(splittedResult[3] .. " on " .. splittedResult[4])
+            domoticz.devices(tonumber(splittedResult[2])).switchOff().at(splittedResult[5] .. " on " .. splittedResult[6])
         else
             local splittedResult = domoticz.utils.stringSplit(triggeredItem.data,'---')
             domoticz.log("Annulation des programmation pour idx " .. splittedResult[1] .. " et " .. splittedResult[2])
-            --domoticz.devices(tonumber(splittedResult[1])).cancelQueuedCommands()
-            --domoticz.devices(tonumber(splittedResult[2])).cancelQueuedCommands()
+            domoticz.devices(tonumber(splittedResult[1])).cancelQueuedCommands()
+            domoticz.devices(tonumber(splittedResult[2])).cancelQueuedCommands()
         end
 	end
 }
