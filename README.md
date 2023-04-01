@@ -36,4 +36,4 @@ Une fois ajouté, le plugin va créer seul :
 
 Toute nouvelle planification annule la planifiation précédente.
 
-La planification n'est valable qu'une seule fois, mais rien ne vous empêche de créer vos scénarios personnalisée (comme habiteullement avec Domoticz) basés sur les dispositifs du plugin.
+La planification n'est valable qu'une seule fois, mais rien ne vous empêche de créer vos scénarios personnalisés (comme habituellement avec Domoticz) basés sur les dispositifs du plugin.
