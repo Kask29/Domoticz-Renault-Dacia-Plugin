@@ -8,7 +8,7 @@ L'API Renault-api https://renault-api.readthedocs.io/en/latest/ doit être insta
 
 ## Installation et configuration
 ### Installation
-Cloner le dépot dans le repértoire <i>plugins</i> de votre installation Domoticz :
+Cloner le dépôt dans le répertoire <i>plugins</i> de votre installation Domoticz :
 
 Par exemple sous debian :
 
@@ -30,7 +30,7 @@ Une fois ajouté, le plugin va créer seul :
 ![image](https://user-images.githubusercontent.com/98609356/229288896-56fa6ab4-62df-4cf7-88b2-3865c087a7d9.png)
 ![image](https://user-images.githubusercontent.com/98609356/229289047-854ee78b-bed2-44c8-a70c-5bc72ca0bf19.png)
 - le dzEvent qui permet de programmer la charge (départ et arrêt à un moment donné, avec estimation de la charge obtenue)
-- la page web qui permet de créer la tâche plannifiée (disponible dans les pages personnalisée, pensez à activer l'onglet)
+- la page web qui permet de créer la tâche planifiée (disponible dans les pages personnalisée, pensez à activer l'onglet)
 ![image](https://user-images.githubusercontent.com/98609356/229289207-134981ef-6f78-458a-8f0b-422041f6c62a.png)
 
 
