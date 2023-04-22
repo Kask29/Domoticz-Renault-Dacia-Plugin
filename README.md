@@ -6,6 +6,8 @@ La voiture doit être connectée à internet et disponible via les appli officie
 
 L'API Renault-api https://renault-api.readthedocs.io/en/latest/ doit être installée (la configuration n'est pas nécessaire mais vous permet d'afficher votre account-id et le VIN).
 
+L'API Renault-api doit être dans un répertoire accessible par Domoticz.
+
 ## Installation et configuration
 ### Installation
 Cloner le dépôt dans le répertoire <i>plugins</i> de votre installation Domoticz :
