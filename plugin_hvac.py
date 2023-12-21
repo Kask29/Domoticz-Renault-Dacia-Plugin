@@ -379,10 +379,12 @@ class BasePlugin:
             elif Action == "startHVAC":
                     # Affichage dans le log
                     Domoticz.Log(f"Start HVAC T°= {Devices[17].nValue}")
+                    await vehicle.set_ac_start(Devices[17].nValue)
                 return
             elif Action == "stopHVAC":
                     # Affichage dans le log
                     Domoticz.Log(f"Stop HVAC")
+                    await vehicle.set_ac_stop()
                 return
             else:
                 return
