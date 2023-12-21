@@ -97,7 +97,7 @@ class BasePlugin:
             Domoticz.Device(Name="Arrêter la charge", Unit=14, TypeName="Switch", Used=1, Switchtype=10).Create()
             Domoticz.Device(Name="Lancer la clim", Unit=15, TypeName="Switch", Used=1, Switchtype=9).Create()
             Domoticz.Device(Name="Arrêter la clim", Unit=16, TypeName="Switch", Used=1, Switchtype=10).Create()
-            Domoticz.Device(Name="Température clim", Unit=16, TypeName="Switch", Used=1, Switchtype=18).Create()
+            Domoticz.Device(Name="Température clim", Unit=17, TypeName="Switch", Used=1, Switchtype=18).Create()
             
             #Domoticz.Device(Name="Carburant autonomie", Unit=15, Type=243, Subtype=31, Used=0, Options={'Custom': '1;km'}).Create()    # not used
             #Domoticz.Device(Name="Carburant quantité", Unit=16, Type=243, Subtype=31, Used=0, Options={'Custom': '1;L'}).Create()      # not used
@@ -378,11 +378,11 @@ class BasePlugin:
                 return
             elif Action == "startHVAC":
                     # Affichage dans le log
-                    Domoticz.Log(f"Start HVAC")
+                    Domoticz.Log(f"Start HVAC T°= {Devices[17].nValue}")
                 return
             elif Action == "stopHVAC":
                     # Affichage dans le log
-                    Domoticz.Log(f"Start HVAC")
+                    Domoticz.Log(f"Stop HVAC")
                 return
             else:
                 return
