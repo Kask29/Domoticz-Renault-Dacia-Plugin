@@ -9,8 +9,9 @@
 # Author:  Richeux
 # License: MIT
 
+
 """
-<plugin key="domoticz-renault-dacia" name="Renault / Dacia connect" author="Richeux" version="1.0.0" wikilink="https://github.com/Kask29/Domoticz-Renault-Dacia-Plugin" externallink="https://renault-api.readthedocs.io/en/latest/index.html">
+<plugin key="domoticz-renault-dacia" name="Renault / Dacia connect" author="Richeux" version="1.0.1" wikilink="https://github.com/Kask29/Domoticz-Renault-Dacia-Plugin" externallink="https://renault-api.readthedocs.io/en/latest/index.html">
     <description>
         <h2>Domoticz Renault / Dacia plugin</h2>
         This plugin permits to access, through the Renault/Dacia account credentials, to information about owned electric vehicles<br/>
@@ -33,6 +34,18 @@
                 <option label="6 heures" value="360"/>
                 <option label="12 heures" value="720"/>
                 <option label="24 heures" value="1440"/>
+            </options>
+        </param>
+        <param field="Mode5" label="Services actifs" width="300px">
+            <options>
+                <option label="Cockpit + Batterie + Localisation" value="111" default="true" />
+                <option label="Cockpit" value="100"/>
+                <option label="Cockpit + Batterie" value="110"/>
+                <option label="Cockpit + Localisation" value="101"/>
+                <option label="Batterie" value="010"/>
+                <option label="Batterie + Localisation" value="011"/>
+                <option label="Localisation" value="001"/>
+                <option label="Aucun" value="0"/>
             </options>
         </param>
     </params>
@@ -94,15 +107,15 @@ class BasePlugin:
             # Actionneur
             Domoticz.Device(Name="Mise à jour", Unit=12, TypeName="Switch", Used=1, Switchtype=9).Create()
             Domoticz.Device(Name="Lancer la charge", Unit=13, TypeName="Switch", Used=1, Switchtype=9).Create()
-            Domoticz.Device(Name="Arrêter la charge", Unit=14, TypeName="Switch", Used=1, Switchtype=10).Create()
-            
+            Domoticz.Device(Name="Arrêter la charge", Unit=14, TypeName="Switch", Used=1, Switchtype=10).Create()            
             #Domoticz.Device(Name="Carburant autonomie", Unit=15, Type=243, Subtype=31, Used=0, Options={'Custom': '1;km'}).Create()    # not used
             #Domoticz.Device(Name="Carburant quantité", Unit=16, Type=243, Subtype=31, Used=0, Options={'Custom': '1;L'}).Create()      # not used
+            Domoticz.Device(Name="Charge max programmée", Unit=17, TypeName="Switch", Used=1, Switchtype=18, Options={"LevelNames":"Off|20|30|40|50|60|70|80|90|100","LevelActions":"|","LevelOffHidden": "false","SelectorStyle": "1"}).Create() 
+
             #Domoticz.Device(Name="Lancer la clim", Unit=23, TypeName="Switch", Used=1, Switchtype=9).Create()
             #Domoticz.Device(Name="Arrêter la clim", Unit=24, TypeName="Switch", Used=1, Switchtype=9).Create()
-            # faire des evennements si l'heure >xxx et cahrge < xx alors lancer la charge. Si charge > 80% alors arreter la charge, etc.
+            # faire des evennements si l'heure >xxx et charge < xx alors lancer la charge. Si charge > 80% alors arreter la charge, etc.
             Domoticz.Log(f"Devices created for {hardware_name} !")
-            
         copy2('./plugins/Dacia/Dacia.html', './www/templates/Dacia.html')
         os.mkdir('./www/templates/Dacia')
         copy2('./plugins/Dacia/icone/actualiser.png', './www/templates/Dacia/actualiser.png')
@@ -112,6 +125,7 @@ class BasePlugin:
         copy2('./plugins/Dacia/icone/Recharger.png', './www/templates/Dacia/Recharger.png')
         
         copy2('./plugins/Dacia/Plugin_RenaultDacia_Programmer.lua', './scripts/dzVents/scripts/Plugin_RenaultDacia_Programmer.lua')
+        copy2('./plugins/Dacia/Plugin_RenaultDacia_Selector.lua', './scripts/dzVents/scripts/Plugin_RenaultDacia_Selector.lua')
         
             
     def onStop(self):
@@ -126,6 +140,7 @@ class BasePlugin:
             os.rmdir('./www/templates/Dacia')
             
             os.remove('./scripts/dzVents/scripts/Plugin_RenaultDacia_Programmer.lua')
+            os.remove('./scripts/dzVents/scripts/Plugin_RenaultDacia_Selector.lua')
 	
     def onConnect(self, Connection, Status, Description):
         Domoticz.Log("onConnect called")
@@ -196,57 +211,53 @@ class BasePlugin:
             self._vehicle = vehicle
             
             # Mise à jour des devices (toujours effectuée en amont des autres actions possibles)
-            Battery = await vehicle.get_battery_status()
-            Domoticz.Log("Battery status ok")
-            Cockpit = await vehicle.get_cockpit()
-            Domoticz.Log("Cockpit ok")
-            Location = await vehicle.get_location()
-            Domoticz.Log("Location ok")
-            self._Battery = Battery
-            self._Cockpit = Cockpit
-            self._Location = Location
-            
-            totalMileage = Cockpit.totalMileage #float
-            Battery_level = Battery.batteryLevel #int
-            Battery_temperature = Battery.batteryTemperature #int
-            Battery_autonomy = Battery.batteryAutonomy #int
-            Battery_availableEnergy = Battery.batteryAvailableEnergy #int
             Battery_capacity = Parameters["Mode3"] # La capacité de la batterie doit être indiquée manuellement car l'API retourne 0
-            Battery_plugStatus = Battery.plugStatus #int
-            Battery_chargingStatus = Battery.chargingStatus #float
-            Battery_chargingRemainingTime = Battery.chargingRemainingTime #int
-            Battery_chargingInstantaneousPower = Battery.chargingInstantaneousPower #int
-            latitude = Location.gpsLatitude #float
-            longitude = Location.gpsLongitude #float
-            
-            # Affichage dans le log
-            Domoticz.Log(f"Total mileage : {totalMileage} km")
-            Domoticz.Log(f"Battery level : {Battery_level}%")
-            Domoticz.Log(f"Battery temperature : {Battery_temperature}°C")
-            Domoticz.Log(f"Battery autonomy : {Battery_autonomy} km")
-            Domoticz.Log(f"Battery available energy : {Battery_availableEnergy} kWh")
-            Domoticz.Log(f"Battery capacity : {Battery_capacity} kWh")
-            Domoticz.Log(f"Plug status : {Battery_plugStatus}")
-            Domoticz.Log(f"Charging status : {Battery_chargingStatus}")
-            Domoticz.Log(f"Charging remaining time : {Battery_chargingRemainingTime} ??")
-            Domoticz.Log(f"Instantaneous Power : {Battery_chargingInstantaneousPower} kWh")
-            Domoticz.Log(f"Latitude : {latitude}")
-            Domoticz.Log(f"Longitude : {longitude}")
-            
-            # Mise à jour des dispositifs
-            Devices[1].Update(nValue=0, sValue=str(Battery_level)) # Battery percentage
-            Devices[2].Update(nValue=0, sValue=str(Battery_temperature)) # Battery temperature
-            Devices[3].Update(nValue=0, sValue=str(Battery_autonomy)) # Battery autonomy
-            Devices[4].Update(nValue=0, sValue=str(Battery_availableEnergy)) # Battery energy
-            Devices[5].Update(nValue=0, sValue=str(Battery_capacity)) # Battery capacity
-            Devices[6].Update(nValue=0, sValue=str(Battery_plugStatus)) # Battery plugged
-            Devices[7].Update(nValue=0, sValue=str(Battery_chargingStatus)) # Battery charging
-            Devices[8].Update(nValue=0, sValue=str(Battery_chargingRemainingTime)) # Battery remaining charging time - color may be changed by nvalue (0=gray, 1=green, 2=yellow, 3=orange, 4=red)
-            Devices[9].Update(nValue=0, sValue=str(Battery_chargingInstantaneousPower)) # Battery charging power
-            Devices[10].Update(nValue=0, sValue=str(totalMileage)) # Total mileage
-            Devices[11].Update(nValue=0, sValue="Latitude : "+str(latitude)+" / Longitude : "+str(longitude)) # Position     
-            ## Devices[12].Update() # Fuel autonomy
-            ## Devices[13].Update() # Fuel quantity
+            if Parameters["Mode5"] == "111" or Parameters["Mode5"] == "010" or Parameters["Mode5"] == "011" or Parameters["Mode5"] == "110":
+                Battery = await vehicle.get_battery_status()
+                Domoticz.Log("Battery status ok")
+                self._Battery = Battery
+                Battery_level = Battery.batteryLevel #int
+                Battery_temperature = Battery.batteryTemperature #int
+                Battery_autonomy = Battery.batteryAutonomy #int
+                Battery_availableEnergy = Battery.batteryAvailableEnergy #int
+                Battery_plugStatus = Battery.plugStatus #int
+                Battery_chargingStatus = Battery.chargingStatus #float
+                Battery_chargingRemainingTime = Battery.chargingRemainingTime #int
+                Battery_chargingInstantaneousPower = Battery.chargingInstantaneousPower #int
+                Domoticz.Log(f"Battery level : {Battery_level}%")
+                Domoticz.Log(f"Battery temperature : {Battery_temperature}°C")
+                Domoticz.Log(f"Battery autonomy : {Battery_autonomy} km")
+                Domoticz.Log(f"Battery available energy : {Battery_availableEnergy} kWh")
+                Domoticz.Log(f"Battery capacity : {Battery_capacity} kWh")
+                Domoticz.Log(f"Plug status : {Battery_plugStatus}")
+                Domoticz.Log(f"Charging status : {Battery_chargingStatus}")
+                Domoticz.Log(f"Charging remaining time : {Battery_chargingRemainingTime} ??")
+                Domoticz.Log(f"Instantaneous Power : {Battery_chargingInstantaneousPower} kWh")
+                Devices[1].Update(nValue=0, sValue=str(Battery_level)) # Battery percentage
+                Devices[2].Update(nValue=0, sValue=str(Battery_temperature)) # Battery temperature
+                Devices[3].Update(nValue=0, sValue=str(Battery_autonomy)) # Battery autonomy
+                Devices[4].Update(nValue=0, sValue=str(Battery_availableEnergy)) # Battery energy
+                Devices[5].Update(nValue=0, sValue=str(Battery_capacity)) # Battery capacity
+                Devices[6].Update(nValue=0, sValue=str(Battery_plugStatus)) # Battery plugged
+                Devices[7].Update(nValue=0, sValue=str(Battery_chargingStatus)) # Battery charging
+                Devices[8].Update(nValue=0, sValue=str(Battery_chargingRemainingTime)) # Battery remaining charging time - color may be changed by nvalue (0=gray, 1=green, 2=yellow, 3=orange, 4=red)
+                Devices[9].Update(nValue=0, sValue=str(Battery_chargingInstantaneousPower)) # Battery charging power
+            if Parameters["Mode5"] == "111" or Parameters["Mode5"] == "100" or Parameters["Mode5"] == "101" or Parameters["Mode5"] == "110":
+                Cockpit = await vehicle.get_cockpit()
+                Domoticz.Log("Cockpit ok")
+                self._Cockpit = Cockpit
+                totalMileage = Cockpit.totalMileage #float
+                Domoticz.Log(f"Total mileage : {totalMileage} km")
+                Devices[10].Update(nValue=0, sValue=str(totalMileage)) # Total mileage
+            if Parameters["Mode5"] == "111" or Parameters["Mode5"] == "001" or Parameters["Mode5"] == "101" or Parameters["Mode5"] == "011":
+                Location = await vehicle.get_location()
+                Domoticz.Log("Location ok")
+                self._Location = Location
+                latitude = Location.gpsLatitude #float
+                longitude = Location.gpsLongitude #float
+                Domoticz.Log(f"Latitude : {latitude}")
+                Domoticz.Log(f"Longitude : {longitude}")
+                Devices[11].Update(nValue=0, sValue="Latitude : "+str(latitude)+" / Longitude : "+str(longitude)) # Position 
             
             # Traitement de l'Action
             hardware_name = Parameters["Name"]
@@ -257,117 +268,11 @@ class BasePlugin:
                 if Battery_plugStatus == 1:
                     Domoticz.Log(f"Lancement de la charge de {hardware_name}.")
                     await vehicle.set_charge_start()
-                    
-                    vehicle = await account.get_api_vehicle(Parameters["Mode2"])
-                    Battery = await vehicle.get_battery_status()
-                    Domoticz.Log("Battery status ok")
-                    Cockpit = await vehicle.get_cockpit()
-                    Domoticz.Log("Cockpit ok")
-                    Location = await vehicle.get_location()
-                    Domoticz.Log("Location ok")
-                    self._Battery = Battery
-                    self._Cockpit = Cockpit
-                    self._Location = Location
-                    
-                    totalMileage = Cockpit.totalMileage #float
-                    Battery_level = Battery.batteryLevel #int
-                    Battery_temperature = Battery.batteryTemperature #int
-                    Battery_autonomy = Battery.batteryAutonomy #int
-                    Battery_availableEnergy = Battery.batteryAvailableEnergy #int
-                    Battery_capacity = Parameters["Mode3"] # La capacité de la batterie doit être indiquée manuellement car l'API retourne 0
-                    Battery_plugStatus = Battery.plugStatus #int
-                    Battery_chargingStatus = Battery.chargingStatus #float
-                    Battery_chargingRemainingTime = Battery.chargingRemainingTime #int
-                    Battery_chargingInstantaneousPower = Battery.chargingInstantaneousPower #int
-                    latitude = Location.gpsLatitude #float
-                    longitude = Location.gpsLongitude #float
-                    
-                    # Affichage dans le log
-                    Domoticz.Log(f"Total mileage : {totalMileage} km")
-                    Domoticz.Log(f"Battery level : {Battery_level}%")
-                    Domoticz.Log(f"Battery temperature : {Battery_temperature}°C")
-                    Domoticz.Log(f"Battery autonomy : {Battery_autonomy} km")
-                    Domoticz.Log(f"Battery available energy : {Battery_availableEnergy} kWh")
-                    Domoticz.Log(f"Battery capacity : {Battery_capacity} kWh")
-                    Domoticz.Log(f"Plug status : {Battery_plugStatus}")
-                    Domoticz.Log(f"Charging status : {Battery_chargingStatus}")
-                    Domoticz.Log(f"Charging remaining time : {Battery_chargingRemainingTime} ??")
-                    Domoticz.Log(f"Instantaneous Power : {Battery_chargingInstantaneousPower} kWh")
-                    Domoticz.Log(f"Latitude : {latitude}")
-                    Domoticz.Log(f"Longitude : {longitude}")
-                    
-                    # Mise à jour des dispositifs
-                    Devices[1].Update(nValue=0, sValue=str(Battery_level)) # Battery percentage
-                    Devices[2].Update(nValue=0, sValue=str(Battery_temperature)) # Battery temperature
-                    Devices[3].Update(nValue=0, sValue=str(Battery_autonomy)) # Battery autonomy
-                    Devices[4].Update(nValue=0, sValue=str(Battery_availableEnergy)) # Battery energy
-                    Devices[5].Update(nValue=0, sValue=str(Battery_capacity)) # Battery capacity
-                    Devices[6].Update(nValue=0, sValue=str(Battery_plugStatus)) # Battery plugged
-                    Devices[7].Update(nValue=0, sValue=str(Battery_chargingStatus)) # Battery charging
-                    Devices[8].Update(nValue=0, sValue=str(Battery_chargingRemainingTime)) # Battery remaining charging time - color may be changed by nvalue (0=gray, 1=green, 2=yellow, 3=orange, 4=red)
-                    Devices[9].Update(nValue=0, sValue=str(Battery_chargingInstantaneousPower)) # Battery charging power
-                    Devices[10].Update(nValue=0, sValue=str(totalMileage)) # Total mileage
-                    Devices[11].Update(nValue=0, sValue="Latitude : "+str(latitude)+" / Longitude : "+str(longitude)) # Position     
-                    ## Devices[12].Update() # Fuel autonomy
-                    ## Devices[13].Update() # Fuel quantity
                 return
             elif Action == "stopCharge":
                 if Battery_plugStatus == 1:
-                    await vehicle.set_charge_stop()
                     Domoticz.Log(f"Arrêt de la charge de {hardware_name}.")
-                    
-                    vehicle = await account.get_api_vehicle(Parameters["Mode2"])
-                    Battery = await vehicle.get_battery_status()
-                    Domoticz.Log("Battery status ok")
-                    Cockpit = await vehicle.get_cockpit()
-                    Domoticz.Log("Cockpit ok")
-                    Location = await vehicle.get_location()
-                    Domoticz.Log("Location ok")
-                    self._Battery = Battery
-                    self._Cockpit = Cockpit
-                    self._Location = Location
-                    
-                    totalMileage = Cockpit.totalMileage #float
-                    Battery_level = Battery.batteryLevel #int
-                    Battery_temperature = Battery.batteryTemperature #int
-                    Battery_autonomy = Battery.batteryAutonomy #int
-                    Battery_availableEnergy = Battery.batteryAvailableEnergy #int
-                    Battery_capacity = Parameters["Mode3"] # La capacité de la batterie doit être indiquée manuellement car l'API retourne 0
-                    Battery_plugStatus = Battery.plugStatus #int
-                    Battery_chargingStatus = Battery.chargingStatus #float
-                    Battery_chargingRemainingTime = Battery.chargingRemainingTime #int
-                    Battery_chargingInstantaneousPower = Battery.chargingInstantaneousPower #int
-                    latitude = Location.gpsLatitude #float
-                    longitude = Location.gpsLongitude #float
-                    
-                    # Affichage dans le log
-                    Domoticz.Log(f"Total mileage : {totalMileage} km")
-                    Domoticz.Log(f"Battery level : {Battery_level}%")
-                    Domoticz.Log(f"Battery temperature : {Battery_temperature}°C")
-                    Domoticz.Log(f"Battery autonomy : {Battery_autonomy} km")
-                    Domoticz.Log(f"Battery available energy : {Battery_availableEnergy} kWh")
-                    Domoticz.Log(f"Battery capacity : {Battery_capacity} kWh")
-                    Domoticz.Log(f"Plug status : {Battery_plugStatus}")
-                    Domoticz.Log(f"Charging status : {Battery_chargingStatus}")
-                    Domoticz.Log(f"Charging remaining time : {Battery_chargingRemainingTime} ??")
-                    Domoticz.Log(f"Instantaneous Power : {Battery_chargingInstantaneousPower} kWh")
-                    Domoticz.Log(f"Latitude : {latitude}")
-                    Domoticz.Log(f"Longitude : {longitude}")
-                    
-                    # Mise à jour des dispositifs
-                    Devices[1].Update(nValue=0, sValue=str(Battery_level)) # Battery percentage
-                    Devices[2].Update(nValue=0, sValue=str(Battery_temperature)) # Battery temperature
-                    Devices[3].Update(nValue=0, sValue=str(Battery_autonomy)) # Battery autonomy
-                    Devices[4].Update(nValue=0, sValue=str(Battery_availableEnergy)) # Battery energy
-                    Devices[5].Update(nValue=0, sValue=str(Battery_capacity)) # Battery capacity
-                    Devices[6].Update(nValue=0, sValue=str(Battery_plugStatus)) # Battery plugged
-                    Devices[7].Update(nValue=0, sValue=str(Battery_chargingStatus)) # Battery charging
-                    Devices[8].Update(nValue=0, sValue=str(Battery_chargingRemainingTime)) # Battery remaining charging time - color may be changed by nvalue (0=gray, 1=green, 2=yellow, 3=orange, 4=red)
-                    Devices[9].Update(nValue=0, sValue=str(Battery_chargingInstantaneousPower)) # Battery charging power
-                    Devices[10].Update(nValue=0, sValue=str(totalMileage)) # Total mileage
-                    Devices[11].Update(nValue=0, sValue="Latitude : "+str(latitude)+" / Longitude : "+str(longitude)) # Position     
-                    ## Devices[12].Update() # Fuel autonomy
-                    ## Devices[13].Update() # Fuel quantity
+                    await vehicle.set_charge_stop()
                 return
             else:
                 return
