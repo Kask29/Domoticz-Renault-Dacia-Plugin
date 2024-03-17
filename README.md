@@ -25,7 +25,8 @@ Dans <i>Domoticz / Configuration / Matériel</i> --> ajouter le plugin de type <
 - VIN (communiqué par le vendeur, sur la carte grise, dans l'appli puis Informations)
 - La capacité de la batterie (afin d'estimer les temps de charge)
 - La fréquence d'actualisation des dispositifs
-![image](https://user-images.githubusercontent.com/98609356/229288772-80d777c3-b704-43a9-9276-8b9153b73661.png)
+![image](https://github.com/Kask29/Domoticz-Renault-Dacia-Plugin/assets/98609356/9f06d1cf-8e75-4905-88ab-08e0b9a5cff9)
+
 
 Une fois ajouté, le plugin va créer seul :
 - les Dispositifs nécessaires disponibles dans Interrupteurs et Mesures (ne pas les renommer, ni les supprimer, ni les mettre en non-utilisé. Pour les masquer, mettez les en <i>$Hidden</i> depuis <i>Plan</i>) :
