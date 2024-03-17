@@ -8,6 +8,9 @@ L'API Renault-api https://renault-api.readthedocs.io/en/latest/ doit être insta
 
 L'API Renault-api doit être dans un répertoire accessible par Domoticz.
 
+
+Avant d'intaller dans Domoticz, essayer de lancer un renault-api status pour vérifier quelles informations remontent correctement.
+
 ## Installation et configuration
 ### Installation
 Cloner le dépôt dans le répertoire <i>plugins</i> de votre installation Domoticz :
